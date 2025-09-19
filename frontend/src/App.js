@@ -4,7 +4,10 @@ import Login from './pages/Login';
 import Home from './pages/Home';
 import Products from './pages/Products';
 import Cart from './pages/Cart';
+import Checkout from './pages/Checkout';
 import Profile from './pages/Profile';
+import Admin from './pages/Admin';
+import Navbar from './component/navBar/navBar.js';
 import './App.css';
 
 function App() {
@@ -15,21 +18,40 @@ function App() {
 
   useEffect(() => {
     const savedUser = localStorage.getItem('currentUser');
+    const isAdmin = localStorage.getItem('isAdmin') === 'true';
+
     if (savedUser && savedUser !== 'undefined') {
       setCurrentUser(JSON.parse(savedUser));
-      setCurrentPage('home');
+      // Redirect admin users to admin page
+      if (isAdmin) {
+        setCurrentPage('admin');
+      } else {
+        setCurrentPage('home');
+      }
     }
   }, []);
 
   const handleSuccess = (user) => {
+    console.log('handleSuccess called with user:', user);
+    console.log('isAdmin check:', user.isAdmin || localStorage.getItem('isAdmin') === 'true');
+
     setCurrentUser(user);
     localStorage.setItem('currentUser', JSON.stringify(user));
-    setCurrentPage('home');
+
+    // Check if admin user and redirect to admin page
+    if (user.isAdmin || localStorage.getItem('isAdmin') === 'true') {
+      console.log('Redirecting to admin page');
+      setCurrentPage('admin');
+    } else {
+      console.log('Redirecting to home page');
+      setCurrentPage('home');
+    }
   };
 
   const handleLogout = () => {
     setCurrentUser(null);
     localStorage.removeItem('currentUser');
+    localStorage.removeItem('isAdmin');
     setCurrentPage('auth');
   };
 
@@ -53,13 +75,12 @@ function App() {
   if (currentPage === 'home') {
     return (
       <div className="App">
-        <header className="App-header">
-          <button onClick={() => setCurrentPage('products')}>Products</button>
-          <button onClick={() => setCurrentPage('cart')}>Cart ({cart.length})</button>
-          <button onClick={() => setCurrentPage('profile')}>Profile</button>
-          <button onClick={handleLogout}>Logout</button>
-          <Home />
-        </header>
+        <Navbar
+          setCurrentPage={setCurrentPage}
+          cartCount={cart.length}
+          handleLogout={handleLogout}
+        />
+        <Home setCurrentPage={setCurrentPage} />
       </div>
     );
   }
@@ -67,12 +88,12 @@ function App() {
   if (currentPage === 'products') {
     return (
       <div className="App">
-        <header className="App-header">
-          <button onClick={() => setCurrentPage('home')}>Home</button>
-          <button onClick={() => setCurrentPage('cart')}>Cart ({cart.length})</button>
-          <button onClick={handleLogout}>Logout</button>
-          <Products addToCart={addToCart} />
-        </header>
+        <Navbar
+          setCurrentPage={setCurrentPage}
+          cartCount={cart.length}
+          handleLogout={handleLogout}
+        />
+        <Products addToCart={addToCart} />
       </div>
     );
   }
@@ -80,12 +101,33 @@ function App() {
   if (currentPage === 'cart') {
     return (
       <div className="App">
-        <header className="App-header">
-          <button onClick={() => setCurrentPage('home')}>Home</button>
-          <button onClick={() => setCurrentPage('products')}>Products</button>
-          <button onClick={handleLogout}>Logout</button>
-          <Cart cart={cart} removeFromCart={removeFromCart} />
-        </header>
+        <Navbar
+          setCurrentPage={setCurrentPage}
+          cartCount={cart.length}
+          handleLogout={handleLogout}
+        />
+        <Cart
+          cart={cart}
+          removeFromCart={removeFromCart}
+          setCurrentPage={setCurrentPage}
+        />
+      </div>
+    );
+  }
+
+  if (currentPage === 'checkout') {
+    return (
+      <div className="App">
+        <Navbar
+          setCurrentPage={setCurrentPage}
+          cartCount={cart.length}
+          handleLogout={handleLogout}
+        />
+        <Checkout
+          cart={cart}
+          setCurrentPage={setCurrentPage}
+          currentUser={currentUser}
+        />
       </div>
     );
   }
@@ -93,13 +135,25 @@ function App() {
   if (currentPage === 'profile') {
     return (
       <div className="App">
-        <header className="App-header">
-          <button onClick={() => setCurrentPage('home')}>Home</button>
-          <button onClick={() => setCurrentPage('products')}>Products</button>
-          <button onClick={() => setCurrentPage('cart')}>Cart ({cart.length})</button>
-          <button onClick={handleLogout}>Logout</button>
-          <Profile userEmail={currentUser?.email} />
-        </header>
+        <Navbar
+          setCurrentPage={setCurrentPage}
+          cartCount={cart.length}
+          handleLogout={handleLogout}
+        />
+        <Profile userEmail={currentUser?.email} />
+      </div>
+    );
+  }
+
+  if (currentPage === 'admin') {
+    return (
+      <div className="App">
+        <Navbar
+          setCurrentPage={setCurrentPage}
+          cartCount={cart.length}
+          handleLogout={handleLogout}
+        />
+        <Admin setCurrentPage={setCurrentPage} />
       </div>
     );
   }

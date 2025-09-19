@@ -11,6 +11,36 @@ function Login({ onSuccess }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    console.log('Login attempt:', formData);
+
+    // Check for admin credentials first (bypass database)
+    if (formData.email === 'yogesh@1234gmail.com' && formData.password === 'yogesh1234') {
+      console.log('Admin credentials detected, redirecting...');
+
+      // Store admin info in localStorage
+      localStorage.setItem('isAdmin', 'true');
+      localStorage.setItem('currentUser', JSON.stringify({
+        name: 'Admin User',
+        email: 'yogesh@1234gmail.com'
+      }));
+
+      // Create admin user object
+      const adminUser = {
+        name: 'Admin User',
+        email: 'yogesh@1234gmail.com',
+        isAdmin: true
+      };
+
+      console.log('Calling onSuccess with admin user:', adminUser);
+
+      // Call onSuccess to trigger navigation
+      onSuccess(adminUser);
+
+      return;
+    }
+
+    // For regular users, try database login
     try {
       const response = await axios.post('http://localhost:5001/login', formData);
       setMessage(response.data.message);

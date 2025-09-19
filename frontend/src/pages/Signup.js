@@ -18,7 +18,29 @@ function Signup({ onSuccess }) {
         onSuccess(response.data.user);
       }
     } catch (error) {
-      setMessage('Error: ' + error.response?.data || error.message);
+      console.error('Signup error:', error);
+
+      // Better error handling
+      let errorMessage = 'An error occurred during signup';
+
+      if (error.response) {
+        // Server responded with error status
+        if (error.response.data && error.response.data.error) {
+          errorMessage = error.response.data.error;
+        } else if (error.response.data && error.response.data.message) {
+          errorMessage = error.response.data.message;
+        } else {
+          errorMessage = `Server error: ${error.response.status}`;
+        }
+      } else if (error.request) {
+        // Network error
+        errorMessage = 'Network error: Cannot connect to server. Please check if the backend is running.';
+      } else {
+        // Other error
+        errorMessage = error.message || 'Unknown error occurred';
+      }
+
+      setMessage('Error: ' + errorMessage);
     }
   };
 
